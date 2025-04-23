@@ -7,13 +7,13 @@ import numpy as np
 
 # Helper function to ensure all bytes are received
 def recv_all(connection, data_length):
-    data = b''
+    data = bytearray()
     while len(data) < data_length:
         packet = connection.recv(data_length - len(data))
         if not packet:
             raise ConnectionError("Connection closed prematurely")
-        data += packet
-    return data
+        data.extend(packet)
+    return bytes(data) # converts bytearray back to bytes
 
 
 def send_data_to_socket(data_to_send):

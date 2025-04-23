@@ -126,7 +126,7 @@ def log_qrel_combinations_not_included_in_original_qrels(df_to_check, experiment
     df_combined = pd.merge(df_to_check , human_qrels , on=['qid' , 'docno'] , how='left' , indicator=True) # merge in order to determine if documents exist without qrels
     df_unique_to_df1 = df_combined[df_combined['_merge'] == 'left_only']
 
-    path_to_write_missing = s.ADDITIONAL_QREL_LOCATION / s.dataset_short / (experiment_name + s.ADDITIONAL_QREL_FILE_ENDING)
+    path_to_write_missing = s.ADDITIONAL_QREL_LOCATION / s.dataset_name_short / (experiment_name + s.ADDITIONAL_QREL_FILE_ENDING)
     Path(path_to_write_missing).parent.mkdir(parents=True, exist_ok=True)
     with open(path_to_write_missing, 'wb') as f:
         pickle.dump(df_unique_to_df1, f)

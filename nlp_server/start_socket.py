@@ -16,12 +16,13 @@ class EmbeddingsHandler():
     def __init__(self,NLPHandler):
         self.cnt = 0
         self.NLPHandler = NLPHandler
-        if not s.axioms_cache_embeddings.exists():
-            s.axioms_cache_embeddings.mkdir(parents=True)
 
-        self.full_file_path = s.axioms_cache_embeddings.joinpath('embeddings_data_store.pkl')
-        if self.full_file_path.exists():
-            with open(self.full_file_path, 'rb') as file:
+        if not s.AXIOMS_CACHE_EMBEDDINGS_PATH.exists():
+            s.AXIOMS_CACHE_EMBEDDINGS_PATH.mkdir(parents=True)
+
+        self.stored_data_full_file_path = s.AXIOMS_CACHE_EMBEDDINGS_PATH.joinpath('embeddings_data_store.json')
+        if self.stored_data_full_file_path.exists():
+            with open(self.stored_data_full_file_path, 'rb') as file:
                 self.data = pickle.load(file)
         else:
             self.data = {}
@@ -29,33 +30,34 @@ class EmbeddingsHandler():
         self.data_current_dataset = self.data
 
     def save_embedding(self):
-        with open(self.full_file_path, 'wb') as file:
+        with open(self.stored_data_full_file_path, 'wb') as file:
             pickle.dump(self.data, file)
 
     def get_embedding(self, data_dict):
         docno = data_dict[s.SOCKET_DOCNO]
         document = data_dict[s.SOCKET_DOCUMENT]
-        embedding_style = data_dict[s.SOCKET_EMBEDDING_STYLE]
+        embedding_model = data_dict[s.SOCKET_EMBEDDING_MODEL]
+
         sentenize = data_dict[s.SOCKET_SENTENIZE]
         task = data_dict[s.SOCKET_TASK]
-        identifier = data_dict[s.SOCKET_IDENTIFIER]
+        embedding_style = data_dict[s.SOCKET_EMBEDDING_STYLE]
         task_info = data_dict[s.SOCKET_TASK_INFO]
 
-        if docno is None or document is None or embedding_style is None  or identifier is None:
+        if docno is None or document is None or embedding_model is None  or embedding_style is None:
             logger.error('Could not get embedding. Missing arguments.')
             sys.exit(1)
 
-        if identifier not in self.data_current_dataset:
-            self.data_current_dataset[identifier] = {s.SBERT: dict(), s.ADA: dict()}
+        if embedding_style not in self.data_current_dataset:
+            self.data_current_dataset[embedding_style] = {s.SBERT: dict()}
 
-        embed_data_dict = self.data_current_dataset[identifier][embedding_style]
+        embed_data_dict = self.data_current_dataset[embedding_style][embedding_model]
 
         if docno in embed_data_dict:
             return embed_data_dict[docno]
         else:
             # perform embedding
-            logger.info(f"Doing Embedding {docno} with {embedding_style} and identifier {identifier}")
-            embedding = self.do_embeddding(document=document , embedding_style=embedding_style , identifier=identifier, sentenize=sentenize,task_info=task_info)
+            logger.info(f"Doing Embedding {docno} with {embedding_model} and embedding_style {embedding_style}")
+            embedding = self.do_embedding(document=document, embedding_style=embedding_model, identifier=embedding_style, sentencing_flag=sentenize, task_info=task_info)
             self.cnt += 1
             embed_data_dict.update({docno: embedding})
             return embedding
@@ -67,23 +69,25 @@ class EmbeddingsHandler():
             final_annotations = [" "]
         return final_annotations
 
-    def do_embeddding(self , document=None, embedding_style=None , identifier=None, sentenize=True,task_info=None):
-        embedding = None
-        sentences_to_embed = document
+    def do_embedding(self, document=None, embedding_style=None, identifier=None, sentencing_flag=True, task_info=None):
+        document_data_to_embedd = document
         if isinstance(document,str):
-            sentences_to_embed = [document]
+            document_data_to_embedd = [document]
 
-        if sentenize:
-            sentences_to_embed = self.NLPHandler.create_sentences(document)
-        sentences_to_embed = self.clean_sentences(sentences_to_embed) # ground cleaning which is for sure to be done
+        if sentencing_flag:
+            document_data_to_embedd = self.NLPHandler.create_sentences(document)
+
+        document_data_to_embedd = self.clean_sentences(document_data_to_embedd) # basic cleaning, which is always done
 
         if identifier in [s.IDENT_AUS_SINGLE_SENTENCE, s.IDENT_AUS_FULL_DOCUMENT]:
-            sentences_to_embed = ut.get_targer_annotation(sentences_to_embed,task_info)
+            document_data_to_embedd = ut.get_targer_annotation(document_data_to_embedd,task_info)
 
         if embedding_style == s.SBERT:
-            embedding = SbertEmbeddings.get_embedding(sentences_to_embed)
-        if embedding_style == s.ADA:
-            embedding = AdaEmbeddings.get_embedding(sentences_to_embed)
+            embedding = SbertEmbeddings.get_embedding(document_data_to_embedd)
+        # if embedding_style == s.ADA:
+        #     embedding = AdaEmbeddings.get_embedding(document_data_to_embedd)
+        else:
+            raise ValueError(f"Unknown embedding style: {embedding_style}")
 
         return embedding
 
@@ -109,21 +113,25 @@ def handle_client(connection):
 
         # the received data contains the task and further information
         task = received_data[s.TASK]
-        dataset = received_data[s.SOCKET_DATASET_KEY]
-        if dataset not in EmbeddHandler.data:
-            EmbeddHandler.data[dataset] = dict()
+
+        dataset_name = received_data[s.SOCKET_DATASET_KEY]
+        if dataset_name not in EmbeddHandler.data:
+            EmbeddHandler.data[dataset_name] = dict()
+
         # set the corresponding data for calculation
-        EmbeddHandler.data_current_dataset = EmbeddHandler.data[dataset]
+        EmbeddHandler.data_current_dataset = EmbeddHandler.data[dataset_name]
 
         data_requested = None
         if task == s.SMTC1:
             data_requested = handle_stmc1(received_data)
-        elif task == s.BATCH_EMBEDDING:
-            data_requested = handle_embedding_batch(received_data)
+        # elif task == s.BATCH_EMBEDDING:
+        #     data_requested = handle_embedding_batch(received_data)
         elif task == s.DOCUMENT_RANKING:
             data_requested = handle_document_ranking(received_data)
-        elif task == s.TARGER_ANALYSIS:
-            data_requested = handle_targer_analysis(received_data)
+        # elif task == s.TARGER_ANALYSIS:
+        #     data_requested = handle_targer_analysis(received_data)
+        else:
+            raise ValueError(f"Unknown task: {task}")
 
         if EmbeddHandler.cnt != 0:
             EmbeddHandler.cnt = 0
@@ -152,39 +160,39 @@ def handle_client(connection):
         # Close the client connection
         connection.close()
 
-def handle_targer_analysis(received_data):
-    docnos = received_data[s.docnos]
-    documents = received_data[s.texts]
+# def handle_targer_analysis(received_data):
+#     docnos = received_data[s.docnos]
+#     documents = received_data[s.texts]
+#
+#     documents_in_sentences = []
+#     documents_in_arguments = []
+#     for i,x in enumerate(documents):
+#         percentage = (i + 1) / len(documents) * 100
+#         print(f"Progress: {percentage:.2f}% sentence {i+1} of {len(documents)}")
+#
+#         sentences = EmbeddHandler.NLPHandler.create_sentences(x)
+#         sentences = [x.lower() for x in sentences]
+#
+#         sentences_targer = ut.get_targer_annotation(sentences)
+#         documents_in_sentences.append(sentences)
+#         documents_in_arguments.append(sentences_targer)
+#     data = {s.sentences : documents_in_sentences , s.argument_units :  documents_in_arguments}
+#     return data
 
-    documents_in_sentences = []
-    documents_in_arguments = []
-    for i,x in enumerate(documents):
-        percentage = (i + 1) / len(documents) * 100
-        print(f"Progress: {percentage:.2f}% sentence {i+1} of {len(documents)}")
-
-        sentences = EmbeddHandler.NLPHandler.create_sentences(x)
-        sentences = [x.lower() for x in sentences]
-
-        sentences_targer = ut.get_targer_annotation(sentences)
-        documents_in_sentences.append(sentences)
-        documents_in_arguments.append(sentences_targer)
-    data = {s.sentences : documents_in_sentences , s.argument_units :  documents_in_arguments}
-    return data
-
-def handle_embedding_batch(received_data):
-    docnos = received_data[s.docnos]
-    documents = received_data[s.texts]
-    assert len(docnos) == len(documents)
-
-    for embedding_style in s.EMBDEDDINGS_STYLES:
-        for sentence_style in s.SENTENCE_STYLES:
-            for i in range(0, len(docnos)):
-                id = docnos[i]
-                document = documents[i]
-                embedding = EmbeddHandler.get_embedding(id , document , embedding_style , sentence_style , True)
-    return None
-        #embeddings.append(embedding)
-   # return embeddings
+# def handle_embedding_batch(received_data):
+#     docnos = received_data[s.docnos]
+#     documents = received_data[s.texts]
+#     assert len(docnos) == len(documents)
+#
+#     for embedding_style in s.EMBDEDDINGS_STYLES:
+#         for sentence_style in s.SENTENCE_STYLES:
+#             for i in range(0, len(docnos)):
+#                 id = docnos[i]
+#                 document = documents[i]
+#                 embedding = EmbeddHandler.get_embedding(id , document , embedding_style , sentence_style , True)
+#     return None
+#         #embeddings.append(embedding)
+#    # return embeddings
 
 def handle_document_ranking(received_data):
     document1 = received_data[s.SOCKET_DOCUMENT1]
@@ -192,7 +200,7 @@ def handle_document_ranking(received_data):
     query = received_data[s.SOCKET_QUERY]
 
     # queries shall never be converted to AUS, therefore default setting is performed
-    query[s.SOCKET_IDENTIFIER] = s.IDENT_SENTENCES
+    query[s.SOCKET_EMBEDDING_STYLE] = s.IDENT_SENTENCES
     query[s.SOCKET_SENTENIZE] = False
 
     comparison = received_data[s.SOCKET_COMPARE_METHOD]

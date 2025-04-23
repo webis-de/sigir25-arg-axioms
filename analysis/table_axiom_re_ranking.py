@@ -97,8 +97,8 @@ class GetMetricsToTable():
     def pretty_print_table(self):
         self.adjust_table_length()
         table_process = lh.columns_to_rows(self.final_table_columns_list)
-        table_process = lh.latex_row_command(table_process, 'DirichletLM',columns_to_ignore=[5,6,7,8,9,10])
-        # table_process = lh.latex_row_command(table_process, 'DirichletLM', ident=7, columns_to_ignore=[1,2,3,4])
+        table_process = lh.latex_row_command(table_process, 'DirichletLM',columns_to_ignore=[5,6,7,8,9,10,11])
+        table_process = lh.latex_row_command(table_process, 'DirichletLM', ident=7, columns_to_ignore=[1,2,3,4])
 
         table_process = lh.latex_mark_highest_column(table_process,index_to_ignore=[0])
 

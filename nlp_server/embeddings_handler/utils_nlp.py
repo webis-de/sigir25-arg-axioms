@@ -14,12 +14,13 @@ class TextPreprocessor() :
         return len(words)
 
     def filter_text(self,text) :
-        if len(text) <= 5 :
+        if len(text) <= 5 : # very short sentences are removed
             return False
         return True
+
     def create_sentences(self , data_str) :
         single_sentences_final = []
-        doc = self.nlp(data_str)
+        doc = self.nlp(data_str) # create sentences out of document
         for sent in doc.sents :
             sentence = sent.text
             if self.filter_text(sentence) :

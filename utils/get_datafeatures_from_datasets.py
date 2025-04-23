@@ -39,7 +39,7 @@ def filter_out_irrelevant_qrels(df):
     return df_merged_only_docs_in_index
 
 def get_qrels_llm_annotation():
-    path_to_data_llm_judgments = location_storage / 'data_qrels' / (s.dataset_short + '_llm_annotation.pkl')
+    path_to_data_llm_judgments = location_storage / 'data_qrels' / (s.dataset_name_short + '_llm_annotation.pkl')
 
     data_qrels_llm = None
     if path_to_data_llm_judgments.exists():
@@ -57,7 +57,7 @@ def get_qrels_llm_annotation():
     return data_qrels_llm
 
 def get_qrels_human_annotation():
-    path_to_data_human_judgments = location_storage / 'data_qrels' / (s.dataset_short + '.pkl')
+    path_to_data_human_judgments = location_storage / 'data_qrels' / (s.dataset_name_short + '.pkl')
     os.makedirs(path_to_data_human_judgments.parent, exist_ok=True)
     if path_to_data_human_judgments.exists():
         with open(path_to_data_human_judgments , "rb") as pickle_file :
@@ -74,17 +74,17 @@ def get_qrels_human_annotation():
 
 def get_qrels(just_human_qrels=False, ignore_qrels_to_use=False):
 
-    if (s.QRELS_TO_USE_DF is not None) and not ignore_qrels_to_use:
-        return s.QRELS_TO_USE_DF
+    # if (s.QRELS_TO_USE_DF is not None) and not ignore_qrels_to_use:
+    #     return s.QRELS_TO_USE_DF
 
     data_qrels_human = get_qrels_human_annotation()
     data_qrels = data_qrels_human
 
-    if not just_human_qrels and not s.ONLY_HUMAN_QRELS:
-        logger.info("Getting existing LLM annotations")
-        data_qrels_llm = get_qrels_llm_annotation()
-        if data_qrels_llm is not None:
-            data_qrels = pd.concat([data_qrels , data_qrels_llm] , ignore_index=True)
+    # if not just_human_qrels and not s.ONLY_HUMAN_QRELS:
+    #     logger.info("Getting existing LLM annotations")
+    #     data_qrels_llm = get_qrels_llm_annotation()
+    #     if data_qrels_llm is not None:
+    #         data_qrels = pd.concat([data_qrels , data_qrels_llm] , ignore_index=True)
 
     qrels = data_qrels[['qid','docno','label']].copy()
     qrels.loc[: , "label"] = qrels["label"].replace({-2 : 0})
@@ -101,7 +101,7 @@ def process_topic_entry(entry):
     return entry_form
 
 def get_dataset_queries():
-    path_to_data = location_storage / 'data_topics' / (s.dataset_short + '.pkl')
+    path_to_data = location_storage / 'data_topics' / (s.dataset_name_short + '.pkl')
     os.makedirs(path_to_data.parent, exist_ok=True)
     if path_to_data.exists() :
         with open(path_to_data , "rb") as pickle_file :
@@ -111,7 +111,7 @@ def get_dataset_queries():
     dataset = get_dataset(f'irds:{s.dataset}')
     queries = dataset.get_topics()
 
-    if s.dataset_short == 'touche20': # do additional processing for Touche20
+    if s.dataset_name_short == 'touche20': # do additional processing for Touche20
         queries = process_touche20(queries)
 
     with open(path_to_data , "wb") as pickle_file :
@@ -121,7 +121,7 @@ def get_dataset_queries():
 # get overview hom many QRELS are from human for this dataset, how many are from LLM
 def get_qrels_human_llm_stats(df):
 
-    path_to_data = location_storage / 'data_qrels' / (s.dataset_short + '.pkl')
+    path_to_data = location_storage / 'data_qrels' / (s.dataset_name_short + '.pkl')
     os.makedirs(path_to_data.parent, exist_ok=True)
 
     all_qrels_df = get_qrels(ignore_qrels_to_use=True)
@@ -160,7 +160,7 @@ def get_qrels_human_llm_stats(df):
 
 
 def update_dataset_llm_qrels(data_dict):
-    path_to_data_llm = location_storage / 'data_qrels' / (s.dataset_short + '_llm_annotation.pkl')
+    path_to_data_llm = location_storage / 'data_qrels' / (s.dataset_name_short + '_llm_annotation.pkl')
     os.makedirs(path_to_data_llm.parent , exist_ok=True)
 
     data_dict.update({'iteration' : 0})
