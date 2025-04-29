@@ -1,9 +1,8 @@
 import copy
 
 import pandas as pd
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
 from utils.save_runs import load_runs
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
+from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axiom_names_list_old_axioms
 from axioms.axioms_translate_dict import arg_translate_dict
 import analysis.utils.latex_helper as lh
 from collections import defaultdict
@@ -14,13 +13,13 @@ from analysis.utils.calc_helpers import GetMetricDictOfDataframe
 ndcg5 = {
 NAME_KEY : 'nDCG(judged_only=True)@5', # column in the dataframe
 SIGNIFICANT_KEY : 'nDCG(judged_only=True)@5 reject', # column indicating significance
-'display_name' : '@5', # new name of the column used for display
+DISPLAY_KEY: '@5', # new name of the column used for display
 }
 
 ndcg10 = {
 NAME_KEY : 'nDCG(judged_only=True)@10', # column in the dataframe
 SIGNIFICANT_KEY : 'nDCG(judged_only=True)@10 reject', # column indicating significance
-'display_name' : '@10', # new name of the column used for display
+DISPLAY_KEY : '@10', # new name of the column used for display
 }
 
 # contains entry for all displayed metrics
@@ -57,7 +56,7 @@ class ToucheRerankingAnalysis():
             metric_data[AXIOMS_TO_DISPLAY_KEY] = change_axioms_to_display
 
             change_axioms = metric_data[AXIOM_KEY]
-            change_axioms = ["base" if item == group else item for item in change_axioms] # change name to base
+            change_axioms = ["base" if item == group else item for item in change_axioms] # change name to base to have unified column names
             metric_data[AXIOM_KEY] = change_axioms
 
             self.data_dicts_participants[group] = metric_data
@@ -142,7 +141,6 @@ class ToucheRerankingAnalysis():
             axiom_position_changes = f"{arg_translate_dict(axiom)}_pos"
             self.final_table_columns_list.append((axiom_score,axiom_score_list))
             self.final_table_columns_list.append((axiom_position_changes,axiom_position_changes_list))
-
         # get the final_tabLe_columns_list into specified line
         final_order_pre = []
         for x in final_row_order:

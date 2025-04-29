@@ -41,13 +41,13 @@ class base_transformers(pt.Transformer):
 
 
 if __name__ == '__main__':
-    dirichletLM = pt.terrier.Retriever(str(s.dataset_index_dir) , wmodel="DirichletLM")
-    bm25 = pt.terrier.Retriever(str(s.dataset_index_dir) , wmodel="BM25")
+    dirichletLM = pt.terrier.Retriever(str(s.DATASET_INDEX_DIR), wmodel="DirichletLM")
+    bm25 = pt.terrier.Retriever(str(s.DATASET_INDEX_DIR), wmodel="BM25")
 
     dirichletLM_result = dirichletLM.transform(gdf.get_dataset_queries())
 
     rd.adjust_retrieval_results_dataframe(dirichletLM_result,ndcg_nbr)
-    filtered_df = rd.adjust_retrieval_results_dataframe_drop_missing(dirichletLM_result)
+    filtered_df = rd.repair_rank_retrieval_results_dataframe_drop_missing(dirichletLM_result)
     filtered_df_transform = base_transformers(filtered_df)
 
 

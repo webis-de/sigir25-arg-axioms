@@ -1,10 +1,9 @@
 .venv
-.venvflask
+.venv_server
 __pycache__
 _*
 .env
 *.pyc
-!__init__.py
+__init__.py
 .idea
 .DS_Store
-storage-2024-10-31

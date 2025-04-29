@@ -12,7 +12,8 @@ if __name__ == "__main__":
 
     # specify the use of touche21
     s.set_data_manually('touche21')
-    s.TOUCHE_DIR = '/Users/max/projects/axiomatic-reranking/_touche21_participant_data'
+
+    s.TOUCHE_PARTICIPANT_DIR = '/Users/max/projects/axiomatic-reranking/_touche21_participant_data'
     experiment_name = 'touche-21-base_evaluation_human_eval'
     ndcg_nbr = 5 # first all participants are evaluated on the ndcg@5 metric
 
@@ -24,9 +25,9 @@ if __name__ == "__main__":
     # find the best submitted run for each participant
     data_collection = []
     for name in participants:
-        data = gnh.get_best_run_for_participant(name,get_run_func=gnh.get_runs_from_participants_touche21, experiment_func=score_func_touche21)
-        if data[0] is None:
+        DATA = gnh.get_best_run_for_participant(name, get_run_func=gnh.get_runs_from_participants_touche21, experiment_func=score_func_touche21)
+        if DATA[0] is None:
             continue
-        data_collection.append((name,data))
+        data_collection.append((name, DATA))
 
     save_runs(data_collection, experiment_name)

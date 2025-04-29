@@ -1,7 +1,7 @@
 import settings
 from utils.save_runs import save_runs,load_runs
 import utils.repair_result_dataframe as rd
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
+from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms, STMC1_sbert, QArgSim_max_sbert_full_document, axiom_list_old_axioms,axiom_names_list_old_axioms
 from experiments.utils.reranking_skeleton import re_rank_argu_axioms
 from ir_axioms.backend.pyterrier.transformers import KwikSortReranker,RandomPivotSelection
 
@@ -19,17 +19,17 @@ if __name__ == '__main__':
 
     cmp_nbr = None
     baseline = 'baseline-dirichlet'
-    for name,data in base_run_data_list :
-        if data[0] == baseline:
-            cmp_nbr = data[2]
+    for name,DATA in base_run_data_list :
+        if DATA[0] == baseline:
+            cmp_nbr = DATA[2]
 
     best_runs = []
-    for i, (name,data) in enumerate(base_run_data_list):
+    for i, (name, DATA) in enumerate(base_run_data_list):
         print(i,len(base_run_data_list))
-        if data[2] >= cmp_nbr: # only use the runs which are better than the baseline
-            group = data[0]
-            best_run = data[3]
-            rd.adjust_retrieval_results_dataframe_drop_missing(best_run)
+        if DATA[2] >= cmp_nbr: # only use the runs which are better than the baseline
+            group = DATA[0]
+            best_run = DATA[3]
+            rd.repair_rank_retrieval_results_dataframe_drop_missing(best_run)
             best_runs.append((group,best_run))
 
 
@@ -37,8 +37,8 @@ if __name__ == '__main__':
                ir_measures.nDCG() @ 10]
     metric_names = ['nDCG(judged_only=True)@5', 'nDCG(judged_only=True)@10', 'nDCG@5', 'nDCG@10']
 
-    axioms =  arg_axiom_list_new_axioms
-    axioms_names = arg_axiom_name_list_new_axioms
+    axioms = arg_axiom_list_new_axioms # [QArgSim_max_sbert_full_document()]
+    axioms_names = arg_axiom_name_list_new_axioms # ["QArgSim"]
 
     re_ranked_data_participants = []
     for group, df in best_runs: # loop through all groups and save data as dict

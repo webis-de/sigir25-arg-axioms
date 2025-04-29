@@ -113,10 +113,12 @@ def main(qrel_path, run_path, depth):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--qrel_path', type=str, required=True)
-    parser.add_argument('--run_path', type=str, required=True)
-    parser.add_argument('--depth', type=int, required=True)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--qrel_path', type=str, required=True)
+    # parser.add_argument('--run_path', type=str, required=True)
+    # parser.add_argument('--depth', type=int, required=True)
+    # args = parser.parse_args()
+    #
+    # main(args.qrel_path, args.run_path, args.depth)
 
-    main(args.qrel_path, args.run_path, args.depth)
+    run_path = 'runs/touche-task2-51-100-relevance.qrels'

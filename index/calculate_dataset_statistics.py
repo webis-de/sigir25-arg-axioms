@@ -1,12 +1,15 @@
 import pyterrier as pt
+
 if not pt.java.started() :
     pt.java.init()
-#set_property("metaindex.compressed.reverse.allow.duplicates", "true")
+
+import string
 
 import pandas as pd
 from tabulate import tabulate
-import string
+
 import settings as s
+
 
 def calculate_values(data):
 
@@ -40,7 +43,7 @@ def calculate_values(data):
 
 if __name__ == "__main__":
         s.set_data_manually('touche21')
-        indexref = pt.IndexRef.of(str(s.dataset_index_dir))
+        indexref = pt.IndexRef.of(str(s.DATASET_INDEX_DIR))
         index = pt.IndexFactory.of(indexref)
 
         iter = index.get_corpus_iter()

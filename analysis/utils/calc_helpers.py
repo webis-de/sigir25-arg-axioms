@@ -27,25 +27,25 @@ class GetMetricDictOfDataframe():
 
             sorted_dataframe = self.sort_dataframe(metric[NAME_KEY])
 
-            axioms_to_display = sorted_dataframe['name'].tolist()
+            axioms_to_display = sorted_dataframe['name'].tolist() # axioms to display to select a subset of included axioms
             if not len(self.axioms_must_display) == 0:
                 best_axioms_old = [x for x in axioms_to_display if x not in self.axioms_must_display]
-                best_axioms_old = best_axioms_old[:3] # only take the top 3 convential ones
+                best_axioms_old = best_axioms_old[:3] # only take the top 3 existing ones
 
                 axioms_to_display = self.axioms_must_display + best_axioms_old
 
             for i,row in sorted_dataframe.iterrows():
                 axiom = row['name']
-                value = row[metric_name]
-                value = str(round(value,3))
+                value_raw = row[metric_name]
+                value_round = str(round(value_raw,3))
 
                 if row[metric_significance] == True:
-                    value = value + "$^{\dag}$" # dagger for significance
+                    value_round = value_round + "$^{\dag}$" # dagger for significance
 
-
+                # we store raw and formatted values for the corresponding keys
                 metric_dict[AXIOM_KEY].append(str(axiom))
-                metric_dict[SCORE_KEY].append(str(value))
-                metric_dict[SCORE_KEY_RAW].append(row[metric_name])
+                metric_dict[SCORE_KEY].append(str(value_round))
+                metric_dict[SCORE_KEY_RAW].append(value_raw)
                 metric_dict[RANK_COLUMN_KEY].append(str(i + 1))
                 metric_dict[RANK_COLUMN_KEY_RAW].append(i + 1)
 

@@ -1,13 +1,16 @@
-import pyterrier as pt
-import settings as s
-import shutil
 import os
+import shutil
+
+import pyterrier as pt
 from loguru import logger
+
+import settings as s
 
 if not pt.java.started():
     pt.java.init()
 
 from pyterrier.datasets import get_dataset
+
 
 class IndexData:
     def __init__(self, dataset):
@@ -18,7 +21,7 @@ class IndexData:
 
     # idea of filtering, negative caveat that the size of the index is massively reduced
     def generate_filter_qrels(self) :
-        for d in dataset.get_corpus_iter() :
+        for d in DATASET.get_corpus_iter() :
             if (d['docno'] in docnos_qrels) : # qrel filtering happens on side of the participants
                 if not isinstance(d['premises_texts'],str):
                     logger.warning(f"Document {d['docno']} has no premises_texts")
@@ -63,7 +66,7 @@ class IndexData:
         self.do_indexing() # second indexing
 
     def index_find_empty_tokens(self): # iterate over index and notate entries with empty tokens
-        indexref = pt.IndexRef.of(str(s.dataset_index_dir))
+        indexref = pt.IndexRef.of(str(s.DATASET_INDEX_DIR))
         index = pt.IndexFactory.of(indexref)
         iter = index.get_corpus_iter()
         for x in iter:
@@ -83,11 +86,11 @@ class IndexData:
             print(f"Directory '{path}' does not exist.")
 
     def do_indexing(self): # sort out very short documents or strange documents with no tokens
-        if s.dataset_index_dir.exists():
-            self.delete_directory(s.dataset_index_dir)
+        if s.DATASET_INDEX_DIR.exists():
+            self.delete_directory(s.DATASET_INDEX_DIR)
 
         indexer = pt.terrier.IterDictIndexer( # we have to do an adjusting of the corresponding fields
-            str(s.dataset_index_dir), meta={'docno': 100, 'text': 110000, 'title': 1200}, fields=True
+            str(s.DATASET_INDEX_DIR), meta={'docno': 100, 'text': 110000, 'title': 1200}, fields=True
             )
         indexer.index(self.generate_filter_minimal_length())
 
@@ -95,12 +98,12 @@ class IndexData:
 if __name__ == '__main__':
     s.set_data_manually('touche20')
     dataset_name = 'beir/webis-touche2020/v2'
-    dataset = get_dataset(f'irds:{dataset_name}')
+    DATASET = get_dataset(f'irds:{dataset_name}')
 
     # get qrels and docno of documents, which have a relevance judgment
-    qrels = dataset.get_qrels()
-    topics = dataset.get_topics()
-    documents = dataset.get_corpus_iter()
+    qrels = DATASET.get_qrels()
+    topics = DATASET.get_topics()
+    documents = DATASET.get_corpus_iter()
     dc_cnt = 0
     for x in documents:
         dc_cnt += 1
@@ -112,6 +115,6 @@ if __name__ == '__main__':
     print(f"Number of qrels: {nbr_of_qrels}")
     print(f"Number of documents: {dc_cnt}")
 
-    index_data = IndexData(dataset)
+    index_data = IndexData(DATASET)
     index_data.do_indexing_control()
 

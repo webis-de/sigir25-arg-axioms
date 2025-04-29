@@ -7,7 +7,7 @@ import utils.repair_result_dataframe as rd
 import ir_measures
 import settings as s
 import utils.get_datafeatures_from_datasets as gdf
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
+from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axiom_names_list_old_axioms
 from experiments.utils.reranking_skeleton import re_rank_argu_axioms
 import utils.save_runs as sr
 
@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     experiment_name = 'dirichletlm-baseline-reranking-touche20-top10-human-eval'
 
-    indexref = pt.IndexRef.of(str(s.dataset_index_dir))
+    indexref = pt.IndexRef.of(str(s.DATASET_INDEX_DIR))
     index = pt.IndexFactory.of(indexref)
     stat = index.getCollectionStatistics()
 
@@ -25,10 +25,10 @@ if __name__ == '__main__':
     queries = gdf.get_dataset_queries()
     print('Nbr Queries',len(queries))
 
-    dirichletLM = pt.terrier.Retriever(str(s.dataset_index_dir) , wmodel="DirichletLM")
+    dirichletLM = pt.terrier.Retriever(str(s.DATASET_INDEX_DIR), wmodel="DirichletLM")
     res_df = dirichletLM.transform(queries)
 
-    res_df = rd.adjust_retrieval_results_dataframe_drop_missing(res_df)  # cut df to human judgments only
+    res_df = rd.repair_rank_retrieval_results_dataframe_drop_missing(res_df)  # cut df to human judgments only
     res_df = rd.cut_retrieval_results_top_n(res_df, rerank_nbr,return_cut=True)
     if res_df is None :
         print("No results to rerank")
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     metric_names = ['nDCG(judged_only=True)@5','nDCG(judged_only=True)@10','nDCG@5','nDCG@10']
 
     axioms = arg_axiom_list_new_axioms + axiom_list_old_axioms
-    axioms_names = arg_axiom_name_list_new_axioms + axioms_name_list_new_axioms
+    axioms_names = arg_axiom_name_list_new_axioms + axiom_names_list_old_axioms
 
     experiment = re_rank_argu_axioms('DirichletLM',
                                      res_df,

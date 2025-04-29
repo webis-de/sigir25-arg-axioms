@@ -8,63 +8,54 @@ import base64
 import pickle
 from utils.send_data_to_socket import send_data_to_socket
 
-def transmission_dict(id=None, document=None, embedding_model=None, sentenize=None, task=None, embedding_style=None, task_info=None):
+def transmission_dict(id=None, document=None, embedding_model=None, embedding_style=None, sentenice=None, task=None, task_info=None):
+
+    required_args = {
+        "id" : id,
+        "document" : document,
+        "embedding_model" : embedding_model,
+        "embedding_style" : embedding_style,
+        "sentenice" : sentenice,
+        "task" : task,
+    }
+
+    missing = [k for k, v in required_args.items() if v is None]
+    if missing :
+        raise ValueError(f"Missing required arguments: {', '.join(missing)}")
+
     data = {
         s.SOCKET_DOCNO : id ,
         s.SOCKET_DOCUMENT : document ,
         s.SOCKET_EMBEDDING_MODEL : embedding_model,
-        s.SOCKET_SENTENIZE : sentenize,
-        s.SOCKET_TASK : task,
         s.SOCKET_EMBEDDING_STYLE : embedding_style,
-        s.SOCKET_TASK_INFO : task_info
+        s.SOCKET_SENTENICE : sentenice,
+        s.SOCKET_TASK : task,
+        s.SOCKET_TASK_INFO : task_info,
+        s.SOCKET_DATASET_KEY : s.DATASET_NAME_SHORT
     }
     return data
 
 
-def document_ranking_socket_sent(document1_data , document2_data , query_data , comparison,task=None):
+def document_ranking_socket_sent(document1_data=None , document2_data=None , query_data=None , comparison=None,task=None):
     if task is None:
-        #sys.exit("Task is not defined")
-        #print("Task is not defined")
-        task = s.DOCUMENT_RANKING
+        sys.exit("Task is not defined")
+
     data = {
-        s.TASK : task,
         s.SOCKET_DOCUMENT1 : document1_data,
         s.SOCKET_DOCUMENT2 : document2_data,
         s.SOCKET_QUERY : query_data,
         s.SOCKET_COMPARE_METHOD : comparison,
-        s.SOCKET_DATASET_KEY : s.dataset_name_short
+        s.TASK : task
     }
     result = send_data_to_socket(data)
     return result
 
-# def sent_embedding_request(id=None , document=None , embedding_style=None , sentence_style =None , sentenize=None):
-#
-#     data = transmission_dict(id=id, document=document, embedding_model=embedding_style, sentence_style =sentence_style, sentenize=sentenize)
-#
-#     response = send_data_to_socket(data)
-#     if response.status_code == 200 :
-#         print("Embedding:" , response.json()['embedding'])
-#         return response.json()['embedding']
-#     else :
-#         try:
-#             print("Error:" , response.json()['error'])
-#         except requests.exceptions.JSONDecodeError:
-#             print("Error: No response from server")
-#         return None
 
-
-# def get_embedding_socket(id=None , document=None , embedding_style=None , sentence_style =None , sentenize=None):
-#     data = transmission_dict(id=id, document=document, embedding_model=embedding_style, sentence_style =sentence_style, sentenize=sentenize, task=s.EMBEDD_SINGLE)
-#     result = send_data_to_socket(data)
-#     return result
-
-
-
-def get_search_contents(context, document1, document2, query) -> Tuple[AnyStr,AnyStr,AnyStr]:
+def get_search_contents(context, document1, document2, query_text) -> Tuple[AnyStr,AnyStr,AnyStr]:
     doc1_text = context.document_contents(document1)
     doc2_text = context.document_contents(document2)
-    query = query.title
-    return doc1_text , doc2_text,query
+    query_text = query_text.title
+    return doc1_text , doc2_text, query_text
 
 
 def deserialize_embedding(data_deserialized):
@@ -81,26 +72,56 @@ def deserialize_embedding(data_deserialized):
         list_to_return.append(arr)
     return list_to_return
 
-def _preference_vectors(context=None , document1=None , document2=None , query=None  , embedding_style = None , document_sentenice= True, comparison_method=None , task_socket=None , identifier=None , task_info=None) -> Tuple[Any,Any,Any]:
+def _preference_vectors(context=None, document1=None, document2=None, query=None, embedding_model = None, comparison_method=None, document_sentenice=None, embedding_style=None, task=None, task_info=None) -> Tuple[Any,Any,Any]:
+
+    required_args = {
+        "context" : context,
+        "document1" : document1,
+        "document2" : document2,
+        "query" : query,
+        "embedding_model" : embedding_model,
+        "comparison_method" : comparison_method,
+        "document_sentenice" : document_sentenice,
+        "embedding_style" : embedding_style,
+        "task" : task,
+    }
+
+    missing = [k for k, v in required_args.items() if v is None]
+    if missing :
+        raise ValueError(f"Missing required arguments: {', '.join(missing)}")
 
     document1_text,document2_text,query_text = get_search_contents(context, document1, document2, query)
 
-    doc1_vectors = transmission_dict(id=document1.id, document=document1_text, embedding_model=embedding_style, sentenize=document_sentenice, embedding_style=identifier, task_info=task_info)
-    doc2_vectors = transmission_dict(id=document2.id, document=document2_text, embedding_model=embedding_style, sentenize=document_sentenice, embedding_style=identifier, task_info=task_info)
+    doc1_vectors = transmission_dict(id=document1.id,
+                                     document=document1_text,
+                                     embedding_model=embedding_model,
+                                     embedding_style=embedding_style,
+                                     sentenice=document_sentenice,
+                                     task=task,
+                                     task_info=task_info)
+
+    doc2_vectors = transmission_dict(id=document2.id,
+                                     document=document2_text,
+                                     embedding_model=embedding_model,
+                                     embedding_style=embedding_style,
+                                     sentenice=document_sentenice,
+                                     task=task,
+                                     task_info=task_info)
 
     # the query shall never be split into AUS
-    query_vector = transmission_dict(id=query_text, document=query_text, embedding_model=embedding_style, sentenize=False, embedding_style=identifier, task_info=task_info)
+    query_vector = transmission_dict(id=query_text,
+                                     document=query_text,
+                                     embedding_model=embedding_model,
+                                     embedding_style=embedding_style,
+                                     sentenice=False,
+                                     task=task,
+                                     task_info=task_info)
 
-    ranking_data = document_ranking_socket_sent(doc1_vectors , doc2_vectors , query_vector , comparison_method , task_socket)
+    ranking_data = document_ranking_socket_sent(document1_data=doc1_vectors,
+                                                document2_data=doc2_vectors,
+                                                query_data=query_vector,
+                                                comparison=comparison_method,
+                                                task=task)
     return ranking_data
 
 
-if __name__ == "__main__":
-
-    x = sent_embedding_request(id="123", document="Some text to embed. Evenmore things to embedd.", embedding_style=s.SBERT, sentence_style=s.sentences, sentenize=True)
-    x_de = deserialize_embedding(x)
-    def dump_data(data , name) :
-        with open(s.root / name , 'wb') as file :
-            pickle.dump(data , file)
-    dump_data(x_de , 'client.pkl')
-    print(x_de)

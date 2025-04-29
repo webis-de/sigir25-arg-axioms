@@ -38,18 +38,26 @@ def evaluate_single_touche_run_ndcg(ndcg_nbr,group_name,df):
     #qrels = dataset.get_qrels()
     #qrels.loc[:, "label"] = qrels["label"].replace({-2 : 0})
     #qrels = qrels[["qid","docno","label"]]
+
     # two variants which should result exact the same output
     experiment = Experiment(
-        retr_systems=[filtered_df_transform,pt.Transformer.from_df(filtered_df)],
-        topics=gdf.get_dataset_queries(),
+        retr_systems= [filtered_df_transform,pt.Transformer.from_df(filtered_df)],
+        topics= gdf.get_dataset_queries(),
         qrels= gdf.get_qrels(),
         eval_metrics=[ndcg,ndcg_judge_only,ndcg_judge_alternative],
         names=[group_name,'reference'],
         verbose=True,
     )
 
+    # ensure not unjudged documents were used
     all_vals_judge = experiment[ndcg_judge_only_name].values.tolist()
     all_vals = experiment[ndcg_name].values.tolist()
+
+    def round_float(data_list):
+        return [round(float(x), 5) if isinstance(x, float) else x for x in data_list]
+
+    all_vals_judge = round_float(all_vals_judge)
+    all_vals = round_float(all_vals)
 
     merged_set = set(all_vals + all_vals_judge)
     if len(merged_set) != 1:

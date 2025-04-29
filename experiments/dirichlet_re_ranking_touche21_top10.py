@@ -8,7 +8,7 @@ import ir_measures
 import settings as s
 import utils.get_datafeatures_from_datasets as gdf
 import axioms.axioms_names as an
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
+from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axiom_names_list_old_axioms
 from experiments.utils.reranking_skeleton import re_rank_argu_axioms
 import utils.save_runs as sr
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     experiment_name = 'dirichletlm-baseline-reranking-touche21-top10-human-eval'
 
-    indexref = pt.IndexRef.of(str(s.dataset_index_dir))
+    indexref = pt.IndexRef.of(str(s.DATASET_INDEX_DIR))
     index = pt.IndexFactory.of(indexref)
     stat = index.getCollectionStatistics()
 
@@ -25,11 +25,12 @@ if __name__ == '__main__':
 
     queries = gdf.get_dataset_queries()
 
-    dirichletLM = pt.terrier.Retriever(str(s.dataset_index_dir) , wmodel="DirichletLM")
+    dirichletLM = pt.terrier.Retriever(str(s.DATASET_INDEX_DIR), wmodel="DirichletLM")
     res_df = dirichletLM.transform(queries)
 
-    res_df = rd.adjust_retrieval_results_dataframe_drop_missing(res_df) # cut df to human judgments only
+    res_df = rd.repair_rank_retrieval_results_dataframe_drop_missing(res_df) # cut df to human judgments only
     res_df = rd.cut_retrieval_results_top_n(res_df, rerank_nbr)
+
     if res_df is None:
         print("No results to rerank")
         exit()
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     metric_names = ['nDCG(judged_only=True)@5','nDCG(judged_only=True)@10','nDCG@5','nDCG@10']
 
     axioms = arg_axiom_list_new_axioms + axiom_list_old_axioms
-    axioms_names = arg_axiom_name_list_new_axioms + axioms_name_list_new_axioms
+    axioms_names = arg_axiom_name_list_new_axioms + axiom_names_list_old_axioms
 
     #axioms = [an.QArgSim_max_exact_sbert_full_document()]
     #axioms_names = ["QArgSim_max_exact_sbert_full_document"]
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     sr.save_runs(experiment, experiment_name)
     # post processing
     df = experiment[["name"] + metric_names].copy()
-    df[metric_names] = df[metric_names].round(3)
+    df[metric_names] = df[metric_names].round(7)
 
     # Create a figure and axis
     fig , ax = plt.subplots(figsize=(11.69 , 8.27))  # A4 landscape size in inches

@@ -2,7 +2,7 @@ import numpy as np
 from numpy import var
 from math import sqrt
 from utils.save_runs import load_runs
-from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axioms_name_list_new_axioms
+from axioms.axioms_names import arg_axiom_list_new_axioms,arg_axiom_name_list_new_axioms,axiom_list_old_axioms,axiom_names_list_old_axioms
 from scipy import stats
 experiment = load_runs('dirichletlm-reranking-touche21-top10-effectsize')
 

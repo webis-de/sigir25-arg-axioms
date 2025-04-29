@@ -14,7 +14,7 @@ def get_runs_from_participants_touche21(desired_group_name):
     run_files = []
 
     # cycle through the incorporated files and perform the operations
-    for group in Path(s.TOUCHE_DIR).iterdir():
+    for group in Path(s.TOUCHE_PARTICIPANT_DIR).iterdir():
         group_name = slugify(group.name).lower()
 
         if group_name == desired_group_name_slug:
@@ -27,7 +27,7 @@ def get_runs_from_participants_touche21(desired_group_name):
                 run_file_name = slugify(run_file.name).lower()
                 run_file_read = read_results(str(run_file)) # read run file with pyterrier
                 res_df = rd.repair_touche_run(run_file_read)
-                repaired_run_file = rd.adjust_retrieval_results_dataframe_drop_missing(res_df)  # cut df to human judgments only
+                repaired_run_file = rd.repair_rank_retrieval_results_dataframe_drop_missing(res_df)  # cut df to human judgments only
 
                 test_ndcg10 = rd.cut_retrieval_results_top_n(repaired_run_file, 10)
                 if test_ndcg10 is None:
@@ -41,7 +41,7 @@ def get_runs_from_participants_touche21(desired_group_name):
     return None
 
 def get_all_group_participants():
-    directories = [slugify(d.name).lower() for d in Path(s.TOUCHE_DIR).iterdir() if d.is_dir()  and not d.name.startswith('.')]
+    directories = [slugify(d.name).lower() for d in Path(s.TOUCHE_PARTICIPANT_DIR).iterdir() if d.is_dir()  and not d.name.startswith('.')]
     return directories
 
 def get_best_run_for_participant(group_name,get_run_func=None,experiment_func=None):

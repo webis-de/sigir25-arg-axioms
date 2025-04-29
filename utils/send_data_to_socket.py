@@ -31,7 +31,7 @@ def send_data_to_socket(data_to_send):
     client_socket = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
 
     # Connect to the server (running on localhost, port 5000)
-    client_socket.connect(('localhost' , s.server_port))
+    client_socket.connect(('localhost' , s.SOCKET_NBR))
 
     # Send the length of the pickled data first (for the server to know how much to expect)
     client_socket.sendall(len(pickled_data).to_bytes(4 , 'big'))
