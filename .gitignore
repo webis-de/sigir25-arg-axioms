@@ -1,0 +1,9 @@
+.venv
+.venv_server
+__pycache__
+_*
+.env
+*.pyc
+__init__.py
+.idea
+.DS_Store

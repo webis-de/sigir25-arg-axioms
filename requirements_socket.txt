@@ -1,0 +1,7 @@
+flask
+spacy
+openai
+sentence-transformers
+loguru
+python-dotenv
+targer-api

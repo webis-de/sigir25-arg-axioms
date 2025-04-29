@@ -1,0 +1,14 @@
+numpy
+nltk
+scipy
+scikit-learn
+python-terrier
+ir-axioms
+loguru
+python-dotenv
+tabulate
+python-slugify
+openai
+vertexai
+anthropic
+prettytable
