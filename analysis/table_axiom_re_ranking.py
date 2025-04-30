@@ -8,23 +8,23 @@ from prettytable import PrettyTable
 from analysis.utils.keys import *
 from analysis.utils.calc_helpers import GetMetricDictOfDataframe
 
-ndcg5 = {
+NDCG5 = {
 NAME_KEY : 'nDCG(judged_only=True)@5', # column in the dataframe
 SIGNIFICANT_KEY : 'nDCG(judged_only=True)@5 reject', # column indicating significance
 'display_name' : '@5', # new name of the column used for display
 }
 
-ndcg10 = {
+NDCG10 = {
 NAME_KEY : 'nDCG(judged_only=True)@10', # column in the dataframe
 SIGNIFICANT_KEY : 'nDCG(judged_only=True)@10 reject', # column indicating significance
 'display_name' : '@10', # new name of the column used for display
 }
 
 # contains entry for all displayed metrics
-metric_list = [ndcg5,ndcg10]
-axioms_must_display = arg_axiom_name_list_new_axioms + ["DirichletLM"]
+METRIC_LIST = [NDCG5, NDCG10]
+AXIOM_MUST_DISPLAY = arg_axiom_name_list_new_axioms + ["DirichletLM"]
 
-final_row_order =[AXIOM_KEY, ndcg5[NAME_KEY], ndcg10[NAME_KEY], ndcg5[NAME_KEY] + RANK_COLUMN_KEY, ndcg10[NAME_KEY] + RANK_COLUMN_KEY]
+FINAL_ROW_ORDER =[AXIOM_KEY, NDCG5[NAME_KEY], NDCG10[NAME_KEY], NDCG5[NAME_KEY] + RANK_COLUMN_KEY, NDCG10[NAME_KEY] + RANK_COLUMN_KEY]
 
 
 
@@ -34,7 +34,7 @@ class GetMetricsToTable():
     def __init__(self,dataframes):
         self.dataframes = dataframes
         self.touche_metric_dict_list = []
-        self.axioms_to_display = axioms_must_display
+        self.axioms_to_display = AXIOM_MUST_DISPLAY
         self.nbr_of_rows = None
 
         self.final_table_columns_list = []
@@ -50,23 +50,23 @@ class GetMetricsToTable():
 
     def prepare_table(self):
         for dataframe in self.dataframes:
-            data_dict = GetMetricDictOfDataframe(dataframe,metric_list,axioms_must_display).data_dict
-            for metric in metric_list:
+            data_dict = GetMetricDictOfDataframe(dataframe, METRIC_LIST, AXIOM_MUST_DISPLAY).data_dict
+            for metric in METRIC_LIST:
                 metric_name = metric[NAME_KEY]
                 axioms_to_display = data_dict[metric_name][AXIOMS_TO_DISPLAY_KEY]
                 self.axioms_to_display += axioms_to_display
             self.touche_metric_dict_list.append(data_dict)
-        self.axioms_to_display = list(set(self.axioms_to_display)) # clean out duplicates
+        self.axioms_to_display = list(set(self.axioms_to_display)) # clean out duplicates, from the axioms which have to displayed
 
     def get_columns_table(self):
         '''combine metrics from multiple dataframes'''
         for metric_i,data_dict in enumerate(self.touche_metric_dict_list):
             data_dict_touche = defaultdict(list)
 
-            axioms_to_display_order_tmp =  data_dict[ndcg5[NAME_KEY]][AXIOM_KEY]
+            axioms_to_display_order_tmp =  data_dict[NDCG5[NAME_KEY]][AXIOM_KEY]
             axioms_to_display_order = [x for x in axioms_to_display_order_tmp if x in self.axioms_to_display]
             data_dict_touche[AXIOM_KEY] = [arg_translate_dict(x) for x in axioms_to_display_order]
-            for metric in metric_list:
+            for metric in METRIC_LIST:
                 metric_name = metric[NAME_KEY]
                 metric_dict = data_dict[metric_name]
 
@@ -78,7 +78,7 @@ class GetMetricsToTable():
                             data_dict_touche[metric_rank_column_key].append(metric_dict[RANK_COLUMN_KEY][i])
                             data_dict_touche[metric_name].append(metric_dict[SCORE_KEY][i])
 
-            for key in final_row_order:
+            for key in FINAL_ROW_ORDER:
                 key_data_list = data_dict_touche[key]
                 self.final_table_columns_list.append([key,key_data_list])
 

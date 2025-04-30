@@ -5,3 +5,4 @@ sentence-transformers
 loguru
 python-dotenv
 targer-api
+pandas

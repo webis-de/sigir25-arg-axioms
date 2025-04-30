@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # specify the use of touche21
     s.set_data_manually('touche21')
 
-    s.TOUCHE_PARTICIPANT_DIR = '/Users/max/projects/axiomatic-reranking/_touche21_participant_data'
+    s.TOUCHE_PARTICIPANT_DIR = s.PROJECT_ROOT / 'touche21_participant_runs'
     experiment_name = 'touche-21-base_evaluation_human_eval'
     ndcg_nbr = 5 # first all participants are evaluated on the ndcg@5 metric
 

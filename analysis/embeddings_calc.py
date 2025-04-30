@@ -10,18 +10,19 @@ import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.manifold import MDS
 import copy
+from adjustText import adjust_text
 
 a = load_runs('touche21-rerank-top10-human-eval')
 print(tpa.metric_list[0][tpa.NAME_KEY])
 
-eval_top_5 = tpa.ToucheRerankingAnalysis(a, tpa.metric_list[0][tpa.NAME_KEY])
-eval_top_10 = tpa.ToucheRerankingAnalysis(a, tpa.metric_list[1][tpa.NAME_KEY])
+EVAL_TOP_5 = tpa.ToucheRerankingAnalysis(a, tpa.metric_list[0][tpa.NAME_KEY])
+EVAL_TOP_10 = tpa.ToucheRerankingAnalysis(a, tpa.metric_list[1][tpa.NAME_KEY])
 
 
 # implement a shortened representation of tex
 
 # Used to map the keys to the correct names for display
-arg_translate_dict_tmp = {
+ARG_TRANSLATE_DICT_TMP = {
     'QSenSim_max_exact_sbert': r'QS_{e}\!\!\uparrow\!\!',
     'QSenSim_max_sbert' : r'QS\!\!\uparrow\!\!',
 
@@ -89,7 +90,7 @@ def calculate_similarity_difference(df,description,ax=None,effect=None):
     labels = clustering.fit_predict(distance_matrix)
 
     # Use MDS to reduce the distance matrix to 2D
-    mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
+    mds = MDS(n_components=2, dissimilarity='precomputed',normalized_stress='auto', random_state=42)
     embeddings = mds.fit_transform(distance_matrix)
     print(embeddings)
 
@@ -100,10 +101,10 @@ def calculate_similarity_difference(df,description,ax=None,effect=None):
 
     if effect is not None: # in this case we add the corresponding effectsize to the axioms
         for name in names_orig:
-            names.append(f"${arg_translate_dict_tmp[name]}$\n${effect[name]:.2f}$")
+            names.append(f"${ARG_TRANSLATE_DICT_TMP[name]}$\n${effect[name]:.2f}$")
     else:
         for name in names_orig:
-            names.append(f"${arg_translate_dict_tmp[name]}$")
+            names.append(f"${ARG_TRANSLATE_DICT_TMP[name]}$")
 
 
     # we just want to show the corresponding points
@@ -113,32 +114,39 @@ def calculate_similarity_difference(df,description,ax=None,effect=None):
         # Create figure
         fig, ax = plt.subplots(figsize=(6, 6))
 
+    # Swap dimensions: use 2nd component as x, 1st as y
+    x = embeddings[:, 1]
+    y = embeddings[:, 0]
+
     # Plot clusters
-    ax.scatter(embeddings[:, 0], embeddings[:, 1], color='black',s=100)  # No labels
+    ax.scatter(y, x, color='black',s=100, label='Data Points')  # No labels
+
+    annotations = []
 
     # Annotate points with names
     for i, (x, y) in enumerate(embeddings) :
-        ax.annotate(names[i], (x, y), textcoords="offset points", xytext=(-10,-25),
-                    ha='right', fontsize=14, color='black')
+        text = ax.annotate(names[i], (x, y), textcoords="offset points", xytext=(0,2),
+                    ha='center', fontsize=4, color='black')
+        annotations.append(text)
+
+    # adjust_text(annotations, force_text=0.1, expand_text=1.2, lim=100)
 
     ax.legend()
     ax.tick_params(direction='in')
 
-    ax.margins(x=0.2, y=0.03)
-
+    #ax.margins(x=0.2, y=0.03)
     # ax.margins(x=0.2, y=0.15) # nDCG 10
     # ax.set_title(f"Axiom Difference Similarity - {description}")
     # Set axis limits
     #ax.set_xlim(-0.1, 0.2)
     #ax.set_ylim(-0.2, 0.14)
-
     # Axiom Absolute Similiarity
 
 
 
 if __name__ == '__main__':
-    ev5_score, ev5_substracted, effect5 = create_data(eval_top_5)
-    ev10_score, ev10_substracted, effec10 = create_data(eval_top_10)
+    ev5_score, ev5_substracted, effect5 = create_data(EVAL_TOP_5)
+    ev10_score, ev10_substracted, effec10 = create_data(EVAL_TOP_10)
 
     # fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(10, 12))
     #calculate_similarity_difference(ev5_substracted,"NDCG5",None,effect=effect5)

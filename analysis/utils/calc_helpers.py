@@ -3,7 +3,7 @@ from analysis.utils.keys import *
 
 
 class GetMetricDictOfDataframe():
-    def __init__(self,df,metric_list,axioms_must_display=None):
+    def     __init__(self,df,metric_list,axioms_must_display=None):
         self.df = df
         self.metric_list = metric_list
         self.axioms_must_display = []
