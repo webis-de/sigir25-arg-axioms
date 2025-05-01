@@ -1,9 +1,13 @@
 .venv
-.venv_server
+.venv_socket
 __pycache__
 _*
+manual_analysis
+*.pdf
 .env
 *.pyc
 __init__.py
+data_old
 .idea
 .DS_Store
+/.vscode/
